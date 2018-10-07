@@ -1,18 +1,12 @@
 package hadoop_machine_learning.move_average;
 
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.Partitioner;
+import org.apache.hadoop.mapreduce.Partitioner;
 
-public class NaturalKeyPartitioner implements Partitioner<CompositeKey, TimeSeriesData>{
+public class NaturalKeyPartitioner extends Partitioner<CompositeKey, TimeSeriesData>{
 
     @Override
     public int getPartition(CompositeKey key, TimeSeriesData value, int numberOfPartitions) {
         return Math.abs((int) (hash(key.getName()) % numberOfPartitions));
-    }
-
-    @Override
-    public void configure(JobConf jobConf) {
-
     }
 
     /**
