@@ -13,7 +13,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 public class HadoopMA {
-    public static class MyMap extends Mapper<Object, Text, Text, IntWritable> {
+    public static class MyMap extends Mapper<Object, Text, CompositeKey, IntWritable> {
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
             String line = value.toString().trim();
             if (null != line) {
