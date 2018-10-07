@@ -1,7 +1,8 @@
 package hadoop_machine_learning.move_average;
 
 import java.io.IOException;
-
+import java.util.Date;
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
@@ -13,23 +14,32 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 public class HadoopMA {
-    public static class MyMap extends Mapper<Object, Text, CompositeKey, IntWritable> {
+    public static class MyMap extends Mapper<Object, Text, CompositeKey, TimeSeriesData> {
+        private final CompositeKey reducerKey = new CompositeKey();
+        private final TimeSeriesData reducerValue = new TimeSeriesData();
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
             String line = value.toString().trim();
-            if (null != line) {
-                String[] temp = line.split("\t");
-                double[] temp_X = new double[temp.length - 1];
-                int temp_y;
-                for (int i = 0; i < temp.length - 1; i++) {
-                    temp_X[i] = Double.parseDouble(temp[i]);
+            //  空数据处理
+            if ((line == null) || (line.length() == 0)) {
+                return;
+            }
+            String[] records = StringUtils.split(line, ",");
+            if (records.length == 3) {
+                Date date = DateUtil.getDate(records[1]);
+                if (date == null) {
+                    return;
                 }
-                temp_y = Integer.parseInt(temp[temp.length - 1]);
-                context.write(value, new IntWritable(0));
+                long timestamp = date.getTime();
+                reducerKey.setName(records[0]);
+                reducerKey.setTimestamp(timestamp);
+                reducerValue.setTimestamp(timestamp);
+                reducerValue.setValue(Double.parseDouble(records[2]));
+                context.write(reducerKey, reducerValue);
             }
         }
     }
 
-    public static class MyReduce extends Reducer<Text, IntWritable, Text, IntWritable> {
+    public static class MyReduce extends Reducer<CompositeKey, TimeSeriesData, Text, IntWritable> {
         public void reduce(Text key, Iterable<IntWritable> values, Context context)
                 throws IOException, InterruptedException {
             int result = 0;

@@ -16,6 +16,10 @@ public class CompositeKey implements WritableComparable<CompositeKey> {
         this.timestamp = timestamp;
     }
 
+    public CompositeKey() {
+
+    }
+
     public String getName() {
         return name;
     }
